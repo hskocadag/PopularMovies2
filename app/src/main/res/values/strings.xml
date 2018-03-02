@@ -1,0 +1,21 @@
+<resources>
+
+    <string name="app_name">Popular Movies 2</string>
+    <string name="default_image_desc">Movie Title</string>
+    <string name="original_title_label">Original Title</string>
+    <string name="plot_synopsis_label">Overview</string>
+    <string name="user_rating_label">Rating</string>
+    <string name="release_date_label">Release Date</string>
+    <string name="order_by_popularity_menu_item">Order by Popularity</string>
+    <string name="order_by_rating_menu_item">Order by Rating</string>
+    <string name="order_by_popularity_title">Most Popular Movies</string>
+    <string name="order_by_rating_title">Top-Rated Movies</string>
+    <string name="movie_detail_title">Movie Detail</string>
+    <string name="tv_dummy_data">-</string>
+    <string name="error_internet_connection">Failed to get results. Please check your internet connection.</string>
+    <!-- PROPERTY RELATED STRINGS -->
+
+    <string name="properties_filename" translatable="false">app.properties</string>
+    <string name="properties_moviedb_api_key" translatable="false">moviedb_api_key</string>
+
+</resources>

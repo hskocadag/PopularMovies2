@@ -1,0 +1,1 @@
+moviedb api key should be inserted into app.properties file under assets directory
