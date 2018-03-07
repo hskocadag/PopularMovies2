@@ -11,7 +11,10 @@
     <string name="order_by_popularity_title">Most Popular Movies</string>
     <string name="order_by_rating_title">Top-Rated Movies</string>
     <string name="movie_detail_title">Movie Detail</string>
-    <string name="tv_dummy_data">-</string>
+    <string name="tv_dummy_data">Dummy Data</string>
+    <string name="tv_dummy_author">Author Name</string>
+    <string name="tv_dummy_review">Review Content</string>
+    <string name="title_reviews">User Reviews</string>
     <string name="error_internet_connection">Failed to get results. Please check your internet connection.</string>
     <!-- PROPERTY RELATED STRINGS -->
 

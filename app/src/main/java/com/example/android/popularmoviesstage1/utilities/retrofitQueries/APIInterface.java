@@ -4,10 +4,14 @@ package com.example.android.popularmoviesstage1.utilities.retrofitQueries;
  * Created by Semper_Sinem on 2.03.2018.
  */
 
+import com.example.android.popularmoviesstage1.model.MovieImagesRequestResult;
 import com.example.android.popularmoviesstage1.model.MovieRequestResult;
+import com.example.android.popularmoviesstage1.model.MovieReviewsRequestResult;
+import com.example.android.popularmoviesstage1.model.MovieVideosRequestResult;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.Path;
 import retrofit2.http.Query;
 
 public interface APIInterface {
@@ -18,4 +22,12 @@ public interface APIInterface {
     @GET("movie/top_rated?")
     Call<MovieRequestResult> getTopRatedMovies(@Query("api_key") String apiKey);
 
+    @GET("movie/{id}/images?")
+    Call<MovieImagesRequestResult> getMovieImages(@Path("id") long id, @Query("api_key") String apiKey);
+
+    @GET("movie/{id}/videos?")
+    Call<MovieVideosRequestResult> getMovieVideos(@Path("id") long id, @Query("api_key") String apiKey);
+
+    @GET("movie/{id}/reviews?")
+    Call<MovieReviewsRequestResult> getMovieReviews(@Path("id") long id, @Query("api_key") String apiKey);
 }

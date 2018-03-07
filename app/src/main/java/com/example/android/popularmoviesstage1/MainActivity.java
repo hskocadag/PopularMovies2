@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -14,16 +15,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.android.popularmoviesstage1.data.MovieContract;
 import com.example.android.popularmoviesstage1.model.Movie;
 import com.example.android.popularmoviesstage1.model.MovieRequestResult;
-import com.example.android.popularmoviesstage1.utilities.JSONUtils;
 import com.example.android.popularmoviesstage1.utilities.NetworkUtils;
 import com.example.android.popularmoviesstage1.utilities.PropertyUtils;
 import com.example.android.popularmoviesstage1.utilities.retrofitQueries.APIClient;
 import com.example.android.popularmoviesstage1.utilities.retrofitQueries.APIInterface;
-
-import java.io.IOException;
-import java.net.URL;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -103,11 +101,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
     public void onGridItemClick(int clickedItemId) {
         Intent detailIntent = new Intent(this, DetailActivity.class);
         Movie clickedMovie = mMovies[clickedItemId];
-        detailIntent.putExtra(JSONUtils.KEY_POSTER_PATH, clickedMovie.getImageUrl());
-        detailIntent.putExtra(JSONUtils.KEY_ORIGINAL_TITLE, clickedMovie.getOriginalTitle());
-        detailIntent.putExtra(JSONUtils.KEY_OVERVIEW, clickedMovie.getPlotSynopsis());
-        detailIntent.putExtra(JSONUtils.KEY_VOTE_AVERAGE, clickedMovie.getUserRating());
-        detailIntent.putExtra(JSONUtils.KEY_RELEASE_DATE, clickedMovie.getFormattedReleaseDate());
+        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_POSTER, clickedMovie.getImageUrl());
+        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, clickedMovie.getOriginalTitle());
+        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_OVERVIEW, clickedMovie.getPlotSynopsis());
+        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_USER_RATING, clickedMovie.getUserRating());
+        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, clickedMovie.getFormattedReleaseDate());
+        detailIntent.putExtra(MovieContract.MovieEntry._ID, clickedMovie.getId());
         startActivity(detailIntent);
     }
 
@@ -179,50 +178,4 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         NetworkInfo netInfo = cm.getActiveNetworkInfo();
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
-
-    /*public class FetchMoviesTask extends AsyncTask<NetworkUtils.OrderType, Void, Movie[]> {
-
-        @Override
-        protected Movie[] doInBackground(NetworkUtils.OrderType... orderTypes) {
-            if(isOnline()) {
-                NetworkUtils.OrderType orderQuery;
-                if (orderTypes.length == 0)
-                    orderQuery = NetworkUtils.OrderType.POPULARITY;
-                else
-                    orderQuery = orderTypes[0];
-
-                String apiKey = PropertyUtils.getProperty(getBaseContext(), getString(R.string.properties_filename), getString(R.string.properties_moviedb_api_key));
-                if (apiKey != null && !apiKey.isEmpty()) {
-                    try {
-                        URL queryUrl = NetworkUtils.buildUrl(
-                                apiKey,
-                                orderQuery);
-                        String queryResponse = NetworkUtils.getResponseFromHttpUrl(queryUrl);
-                        return JSONUtils.getMoviesFromJSON(queryResponse);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Movie[] movies) {
-            super.onPostExecute(movies);
-            if(movies == null)
-            {
-                mErrorMessage.setVisibility(View.VISIBLE);
-                mMoviesRecyclerView.setVisibility(View.GONE);
-            }
-            else {
-                mErrorMessage.setVisibility(View.GONE);
-                mMoviesRecyclerView.setVisibility(View.VISIBLE);
-                mMovies = movies;
-                mMovieAdapter.updateMoviesArray(movies);
-            }
-            adjustTitle(lastOrder);
-            adjustMenuItems(lastOrder);
-        }
-    }*/
 }

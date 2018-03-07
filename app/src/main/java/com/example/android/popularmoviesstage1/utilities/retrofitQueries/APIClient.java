@@ -13,7 +13,7 @@ public class APIClient {
 
     private static Retrofit retrofit = null;
     private static final String MOVIEDB_API_BASE_URL = "https://api.themoviedb.org/3/";
-    private static final String MOVIEDB_POSTER_API_BASE_URL = "http://image.tmdb.org/t/p";
+    private static final String MOVIEDB_POSTER_API_BASE_URL = "http://image.tmdb.org/t/p/";
 
     public static Retrofit getClient() {
 

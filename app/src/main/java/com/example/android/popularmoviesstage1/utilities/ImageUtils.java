@@ -20,7 +20,8 @@ public class ImageUtils {
 
     public enum PosterSize {
         SMALL ("w342"),
-        BIG ("w500");
+        BIG ("w500"),
+        BACKDROP ("w1280");
 
         private final String fSizeString;
 
