@@ -28,8 +28,8 @@ public class MovieContentProvider extends ContentProvider {
 
     public static UriMatcher buildUriMatcher() {
         UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(MovieContract.PROVIDER_NAME, MovieContract.PATH_MOVIES, MOVIES);
-        uriMatcher.addURI(MovieContract.PROVIDER_NAME, MovieContract.PATH_MOVIES + "/#", MOVIES_ID);
+        uriMatcher.addURI(MovieContract.AUTHORITY, MovieContract.PATH_MOVIES, MOVIES);
+        uriMatcher.addURI(MovieContract.AUTHORITY, MovieContract.PATH_MOVIES + "/#", MOVIES_ID);
         return uriMatcher;
     }
 

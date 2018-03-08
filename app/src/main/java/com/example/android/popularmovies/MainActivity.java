@@ -101,12 +101,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
     public void onGridItemClick(int clickedItemId) {
         Intent detailIntent = new Intent(this, DetailActivity.class);
         Movie clickedMovie = mMovies[clickedItemId];
-        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_POSTER, clickedMovie.getImageUrl());
-        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, clickedMovie.getOriginalTitle());
-        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_OVERVIEW, clickedMovie.getPlotSynopsis());
-        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_USER_RATING, clickedMovie.getUserRating());
-        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, clickedMovie.getFormattedReleaseDate());
-        detailIntent.putExtra(MovieContract.MovieEntry._ID, clickedMovie.getId());
+        detailIntent.putExtra(MovieContract.MovieEntry.TABLE_NAME, clickedMovie);
+//        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_POSTER, clickedMovie.getImageUrl());
+//        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, clickedMovie.getOriginalTitle());
+//        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_OVERVIEW, clickedMovie.getPlotSynopsis());
+//        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_USER_RATING, clickedMovie.getUserRating());
+//        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, clickedMovie.getFormattedReleaseDate());
+//        detailIntent.putExtra(MovieContract.MovieEntry._ID, clickedMovie.getId());
         startActivity(detailIntent);
     }
 

@@ -1,13 +1,17 @@
 package com.example.android.popularmoviesstage1.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class Movie {
+public class Movie implements Parcelable{
 
     @SerializedName("original_title")
     private String originalTitle;
@@ -35,6 +39,42 @@ public class Movie {
         this.releaseDate = releaseDate;
         this.id = id;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel parcel, int i) {
+        parcel.writeString(this.originalTitle);
+        parcel.writeString(this.imageUrl);
+        parcel.writeString(this.plotSynopsis);
+        parcel.writeString(getFormattedReleaseDate());
+        parcel.writeDouble(this.userRating);
+        parcel.writeLong(this.id);
+    }
+
+    protected Movie(Parcel in) {
+        originalTitle = in.readString();
+        imageUrl = in.readString();
+        plotSynopsis = in.readString();
+        releaseDate = getReleaseDate(in.readString());
+        userRating = in.readDouble();
+        id = in.readLong();
+    }
+
+    public static final Creator<Movie> CREATOR = new Creator<Movie>() {
+        @Override
+        public Movie createFromParcel(Parcel in) {
+            return new Movie(in);
+        }
+
+        @Override
+        public Movie[] newArray(int size) {
+            return new Movie[size];
+        }
+    };
 
     public String getOriginalTitle() {
         return originalTitle;
@@ -75,7 +115,17 @@ public class Movie {
     public String getFormattedReleaseDate()
     {
         DateFormat df = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
-        return df.format(releaseDate);
+        return df.format(this.releaseDate);
+    }
+
+    private Date getReleaseDate(String date)
+    {
+        try {
+            return (new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH)).parse(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public void setReleaseDate(Date releaseDate) {
@@ -89,4 +139,5 @@ public class Movie {
     public void setId(long id) {
         this.id = id;
     }
+
 }

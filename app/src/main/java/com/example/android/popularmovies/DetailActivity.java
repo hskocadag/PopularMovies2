@@ -1,12 +1,15 @@
 package com.example.android.popularmoviesstage1;
 
 import android.content.ActivityNotFoundException;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.database.Cursor;
 import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -17,17 +20,12 @@ import android.widget.Toast;
 import com.example.android.popularmoviesstage1.data.MovieContract;
 import com.example.android.popularmoviesstage1.model.Movie;
 import com.example.android.popularmoviesstage1.model.MovieImagesRequestResult;
-import com.example.android.popularmoviesstage1.model.MovieRequestResult;
-import com.example.android.popularmoviesstage1.model.MovieReview;
 import com.example.android.popularmoviesstage1.model.MovieReviewsRequestResult;
 import com.example.android.popularmoviesstage1.model.MovieVideosRequestResult;
 import com.example.android.popularmoviesstage1.utilities.ImageUtils;
-import com.example.android.popularmoviesstage1.utilities.NetworkUtils;
 import com.example.android.popularmoviesstage1.utilities.PropertyUtils;
 import com.example.android.popularmoviesstage1.utilities.retrofitQueries.APIClient;
 import com.example.android.popularmoviesstage1.utilities.retrofitQueries.APIInterface;
-
-import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -35,27 +33,27 @@ import retrofit2.Response;
 
 public class DetailActivity extends AppCompatActivity {
 
-    private long mId;
-    private ImageView mPosterImage;
-    private TextView mOriginalTitle;
-    private TextView mOverview;
-    private TextView mRating;
-    private TextView mReleaseDate;
+    private ImageView mPosterImageView;
+    private TextView mOriginalTitleView;
+    private TextView mOverviewView;
+    private TextView mRatingView;
+    private TextView mReleaseDateView;
     private APIInterface apiInterface;
     private RecyclerView mReviewRecyclerView;
     private ReviewAdapter mReviewAdapter;
-    private List<MovieReview> mMovieReviews;
+    private FloatingActionButton mFABFavMovie;
+    private Movie mMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
-        mPosterImage = findViewById(R.id.detail_movie_poster);
-        mOriginalTitle = findViewById(R.id.detail_title_value);
-        mOverview = findViewById(R.id.detail_overview_value);
-        mRating = findViewById(R.id.detail_rating_value);
-        mReleaseDate = findViewById(R.id.detail_release_date_value);
+        mPosterImageView = findViewById(R.id.detail_movie_poster);
+        mOriginalTitleView = findViewById(R.id.detail_title_value);
+        mOverviewView = findViewById(R.id.detail_overview_value);
+        mRatingView = findViewById(R.id.detail_rating_value);
+        mReleaseDateView = findViewById(R.id.detail_release_date_value);
         Intent starterIntent = getIntent();
         setTitle(R.string.movie_detail_title);
 
@@ -68,39 +66,72 @@ public class DetailActivity extends AppCompatActivity {
 
         if(starterIntent != null)
         {
+            mMovie = starterIntent.getParcelableExtra(MovieContract.MovieEntry.TABLE_NAME);
+        }
+        if(mMovie != null && mMovie.getId() > 0)
+        {
+            mFABFavMovie = (FloatingActionButton) findViewById(R.id.fab_fav_movie);
+
+            mFABFavMovie.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    addMovieToFavs();
+                }
+            });
+            FloatingActionButton fabTrailer = (FloatingActionButton) findViewById(R.id.fab_watch_trailer);
+
+            fabTrailer.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    getTrailers();
+                }
+            });
             apiInterface = APIClient.getClient().create(APIInterface.class);
-            setDetailViews(starterIntent);
-            handleComments(mId);
+            setDetailViews();
+            handleComments();
+            setStarColor();
         }
         else
         {
             Toast.makeText(this, "Oops, something went wrong!", Toast.LENGTH_LONG).show();
         }
 
-        FloatingActionButton fabFavMovie = (FloatingActionButton) findViewById(R.id.fab_fav_movie);
-
-        fabFavMovie.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //TODO favorite the movie
-            }
-        });
-
-        FloatingActionButton fabTrailer = (FloatingActionButton) findViewById(R.id.fab_watch_trailer);
-
-        fabTrailer.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                getTrailers(mId);
-            }
-        });
     }
 
-    private void handleComments(long movieId)
+    private void addMovieToFavs()
     {
-        if(movieId < 0)
-            return;
-        Call<MovieReviewsRequestResult> call = apiInterface.getMovieReviews(movieId, getApiKey());
+        ContentValues cv = new ContentValues();
+        cv.put(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, mMovie.getOriginalTitle());
+        cv.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, mMovie.getPlotSynopsis());
+        cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.getFormattedReleaseDate());
+        cv.put(MovieContract.MovieEntry.COLUMN_USER_RATING, mMovie.getUserRating());
+        Uri uri = getContentResolver().insert(MovieContract.BASE_CONTENT_URI, cv);
+        Cursor cursor = getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, MovieContract.MovieEntry._ID + "=?", new String[]{Long.toString(mMovie.getId())}, null);
+        if(cursor != null && cursor.getCount() > 0)
+        {
+
+        }
+    }
+
+    private void setStarColor()
+    {
+        ContentResolver contentResolver = getContentResolver();
+        Cursor cursor = contentResolver.query(MovieContract.MovieEntry.CONTENT_URI, null, MovieContract.MovieEntry._ID + "=?", new String[]{Long.toString(mMovie.getId())}, null);
+        boolean isFav;
+        if(cursor == null)
+            isFav = false;
+        else
+            isFav = cursor.getCount() > 0;
+        //TODO delete 278 after fav feature is developed
+        if(isFav || mMovie.getId() == 278)
+            mFABFavMovie.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.theme_accent)));
+        else
+            mFABFavMovie.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.theme_primary)));
+    }
+
+    private void handleComments()
+    {
+        Call<MovieReviewsRequestResult> call = apiInterface.getMovieReviews(mMovie.getId(), getApiKey());
 
         call.enqueue(new Callback<MovieReviewsRequestResult>() {
             @Override
@@ -120,11 +151,9 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
-    private void getTrailers(long movieId)
+    private void getTrailers()
     {
-        if(movieId < 0)
-            return;
-        Call<MovieVideosRequestResult> call = apiInterface.getMovieVideos(movieId, getApiKey());
+        Call<MovieVideosRequestResult> call = apiInterface.getMovieVideos(mMovie.getId(), getApiKey());
 
         call.enqueue(new Callback<MovieVideosRequestResult>() {
             @Override
@@ -160,9 +189,9 @@ public class DetailActivity extends AppCompatActivity {
         return PropertyUtils.getProperty(this, getString(R.string.properties_filename), getString(R.string.properties_moviedb_api_key));
     }
 
-    private void getBackdropImage(final long movieId)
+    private void getBackdropImage()
     {
-        Call<MovieImagesRequestResult> call = apiInterface.getMovieImages(movieId, getApiKey());
+        Call<MovieImagesRequestResult> call = apiInterface.getMovieImages(mMovie.getId(), getApiKey());
 
         call.enqueue(new Callback<MovieImagesRequestResult>() {
             @Override
@@ -173,9 +202,9 @@ public class DetailActivity extends AppCompatActivity {
                     return;
                 if(movieRequestResult.getBackdrops() != null && movieRequestResult.getBackdrops().size() > 0)
                     //mImagePath = movieRequestResult.getBackdrops().get(0).getFilePath();
-                    ImageUtils.insertImageIntoView(mPosterImage, getApplicationContext(), movieRequestResult.getBackdrops().get(0).getFilePath(), ImageUtils.PosterSize.BACKDROP);
+                    ImageUtils.insertImageIntoView(mPosterImageView, getApplicationContext(), movieRequestResult.getBackdrops().get(0).getFilePath(), ImageUtils.PosterSize.BACKDROP);
                 else if (movieRequestResult.getPosters() != null && movieRequestResult.getPosters().size() > 0)
-                    ImageUtils.insertImageIntoView(mPosterImage, getApplicationContext(), movieRequestResult.getPosters().get(0).getFilePath(), ImageUtils.PosterSize.BIG);
+                    ImageUtils.insertImageIntoView(mPosterImageView, getApplicationContext(), movieRequestResult.getPosters().get(0).getFilePath(), ImageUtils.PosterSize.BIG);
                 else
                     return;
             }
@@ -186,19 +215,14 @@ public class DetailActivity extends AppCompatActivity {
         });
     }
 
-    private void setDetailViews(Intent starterIntent)
+    private void setDetailViews()
     {
-        mId = starterIntent.getLongExtra(MovieContract.MovieEntry._ID, -1);
-        getBackdropImage(mId);
-        String title = starterIntent.getStringExtra(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE);
-        String overview = starterIntent.getStringExtra(MovieContract.MovieEntry.COLUMN_OVERVIEW);
-        double rating = starterIntent.getDoubleExtra(MovieContract.MovieEntry.COLUMN_USER_RATING, -1);
-        String releaseDate = starterIntent.getStringExtra(MovieContract.MovieEntry.COLUMN_RELEASE_DATE);
-        mOriginalTitle.setText(title);
-        mPosterImage.setContentDescription(title);
-        mOverview.setText(overview);
-        mRating.setText(Double.toString(rating));
-        mReleaseDate.setText(releaseDate);
+        getBackdropImage();
+        mOriginalTitleView.setText(mMovie.getOriginalTitle());
+        mPosterImageView.setContentDescription(mMovie.getOriginalTitle());
+        mOverviewView.setText(mMovie.getPlotSynopsis());
+        mRatingView.setText(Double.toString(mMovie.getUserRating()));
+        mReleaseDateView.setText(mMovie.getFormattedReleaseDate());
     }
 
 }
