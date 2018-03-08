@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesstage1;
+package com.example.android.popularmovies;
 
 import android.content.ActivityNotFoundException;
 import android.content.ContentResolver;
@@ -6,6 +6,8 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -17,15 +19,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.popularmoviesstage1.data.MovieContract;
-import com.example.android.popularmoviesstage1.model.Movie;
-import com.example.android.popularmoviesstage1.model.MovieImagesRequestResult;
-import com.example.android.popularmoviesstage1.model.MovieReviewsRequestResult;
-import com.example.android.popularmoviesstage1.model.MovieVideosRequestResult;
-import com.example.android.popularmoviesstage1.utilities.ImageUtils;
-import com.example.android.popularmoviesstage1.utilities.PropertyUtils;
-import com.example.android.popularmoviesstage1.utilities.retrofitQueries.APIClient;
-import com.example.android.popularmoviesstage1.utilities.retrofitQueries.APIInterface;
+import com.example.android.popularmovies.data.MovieContentProvider;
+import com.example.android.popularmovies.data.MovieContract;
+import com.example.android.popularmovies.model.Movie;
+import com.example.android.popularmovies.model.MovieImagesRequestResult;
+import com.example.android.popularmovies.model.MovieReviewsRequestResult;
+import com.example.android.popularmovies.model.MovieVideosRequestResult;
+import com.example.android.popularmovies.utilities.ImageUtils;
+import com.example.android.popularmovies.utilities.PropertyUtils;
+import com.example.android.popularmovies.utilities.retrofitQueries.APIClient;
+import com.example.android.popularmovies.utilities.retrofitQueries.APIInterface;
+import com.squareup.picasso.Picasso;
+
+import java.io.ByteArrayOutputStream;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -43,6 +49,7 @@ public class DetailActivity extends AppCompatActivity {
     private ReviewAdapter mReviewAdapter;
     private FloatingActionButton mFABFavMovie;
     private Movie mMovie;
+    private boolean mIsFavMovie;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +82,7 @@ public class DetailActivity extends AppCompatActivity {
             mFABFavMovie.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    addMovieToFavs();
+                    updateFavStatus();
                 }
             });
             FloatingActionButton fabTrailer = (FloatingActionButton) findViewById(R.id.fab_watch_trailer);
@@ -86,10 +93,11 @@ public class DetailActivity extends AppCompatActivity {
                     getTrailers();
                 }
             });
+            mIsFavMovie = isFavMovie();
             apiInterface = APIClient.getClient().create(APIInterface.class);
             setDetailViews();
             handleComments();
-            setStarColor();
+            setStarColor(mIsFavMovie);
         }
         else
         {
@@ -98,32 +106,54 @@ public class DetailActivity extends AppCompatActivity {
 
     }
 
-    private void addMovieToFavs()
-    {
-        ContentValues cv = new ContentValues();
-        cv.put(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, mMovie.getOriginalTitle());
-        cv.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, mMovie.getPlotSynopsis());
-        cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.getFormattedReleaseDate());
-        cv.put(MovieContract.MovieEntry.COLUMN_USER_RATING, mMovie.getUserRating());
-        Uri uri = getContentResolver().insert(MovieContract.BASE_CONTENT_URI, cv);
-        Cursor cursor = getContentResolver().query(MovieContract.MovieEntry.CONTENT_URI, null, MovieContract.MovieEntry._ID + "=?", new String[]{Long.toString(mMovie.getId())}, null);
-        if(cursor != null && cursor.getCount() > 0)
-        {
-
-        }
-    }
-
-    private void setStarColor()
+    private boolean isFavMovie()
     {
         ContentResolver contentResolver = getContentResolver();
-        Cursor cursor = contentResolver.query(MovieContract.MovieEntry.CONTENT_URI, null, MovieContract.MovieEntry._ID + "=?", new String[]{Long.toString(mMovie.getId())}, null);
-        boolean isFav;
+        Cursor cursor = contentResolver.query(
+                MovieContract.MovieEntry.CONTENT_URI,
+                null,
+                MovieContract.MovieEntry.COLUMN_MOVIEDB_ID + "=?",
+                new String[]{Long.toString(mMovie.getId())},
+                null);
         if(cursor == null)
-            isFav = false;
+            return false;
         else
-            isFav = cursor.getCount() > 0;
-        //TODO delete 278 after fav feature is developed
-        if(isFav || mMovie.getId() == 278)
+            return cursor.getCount() > 0;
+    }
+
+    private void updateFavStatus()
+    {
+        if(!mIsFavMovie) {
+            ContentValues cv = new ContentValues();
+            cv.put(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, mMovie.getOriginalTitle());
+            cv.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, mMovie.getPlotSynopsis());
+            cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.getFormattedReleaseDate());
+            cv.put(MovieContract.MovieEntry.COLUMN_USER_RATING, mMovie.getUserRating());
+            cv.put(MovieContract.MovieEntry.COLUMN_MOVIEDB_ID, mMovie.getId());
+            Bitmap bitmap = ((BitmapDrawable) mPosterImageView.getDrawable()).getBitmap();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            byte[] imageInByte = baos.toByteArray();
+            //cv.put(MovieContract.MovieEntry.COLUMN_BACKDROP, imageInByte);
+            getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
+        }
+        else
+        {
+            String stringId = Long.toString(mMovie.getId());
+            Uri uri = MovieContract.MovieEntry.CONTENT_URI;
+            uri = uri.buildUpon().appendPath(stringId).build();
+            getContentResolver().delete(
+                    uri,
+                    MovieContract.MovieEntry.COLUMN_MOVIEDB_ID + "=?",
+                    null);
+        }
+        mIsFavMovie = isFavMovie();
+        setStarColor(mIsFavMovie);
+    }
+
+    private void setStarColor(boolean isFav)
+    {
+        if(isFav)
             mFABFavMovie.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.theme_accent)));
         else
             mFABFavMovie.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.theme_primary)));
@@ -138,9 +168,15 @@ public class DetailActivity extends AppCompatActivity {
             public void onResponse(Call<MovieReviewsRequestResult> call, Response<MovieReviewsRequestResult> response) {
                 int statusCode = response.code();
                 MovieReviewsRequestResult movieReviewsRequestResult = response.body();
-                if (movieReviewsRequestResult == null)
+                if (movieReviewsRequestResult == null
+                        || movieReviewsRequestResult.getResults() == null
+                        || movieReviewsRequestResult.getResults().size() <= 0) {
+                    findViewById(R.id.tv_review_title).setVisibility(View.GONE);
+                    mReviewRecyclerView.setVisibility(View.GONE);
                     return;
-                if(movieReviewsRequestResult.getResults() != null && movieReviewsRequestResult.getResults().size() > 0)
+                }
+                else
+                    findViewById(R.id.tv_review_title).setVisibility(View.VISIBLE);
                     mReviewAdapter.updateReviewList(movieReviewsRequestResult.getResults());
             }
 

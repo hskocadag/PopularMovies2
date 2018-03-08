@@ -29,7 +29,7 @@
             android:tint="@android:color/white"
             android:layout_marginRight="8dp"
             android:layout_marginBottom="8dp"
-            app:backgroundTint="@color/theme_primary"
+            app:backgroundTint="@color/theme_accent"
             app:srcCompat="@android:drawable/star_on" />
 
         <android.support.design.widget.FloatingActionButton
@@ -146,6 +146,7 @@
 
         <TextView
             android:id="@+id/tv_review_title"
+            android:visibility="invisible"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"

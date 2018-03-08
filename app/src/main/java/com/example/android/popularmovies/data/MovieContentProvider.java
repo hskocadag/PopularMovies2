@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesstage1.data;
+package com.example.android.popularmovies.data;
 
 import android.content.ContentProvider;
 import android.content.ContentUris;
@@ -6,9 +6,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.UriMatcher;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -95,15 +93,15 @@ public class MovieContentProvider extends ContentProvider {
     }
 
     @Override
-    public int delete(@NonNull Uri uri, @Nullable String s, @Nullable String[] strings) {
+    public int delete(@NonNull Uri uri, @Nullable String whereClause, @Nullable String[] parameters) {
         final SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         int match = uriMatcher.match(uri);
         int moviesDeleted = 0;
+        String id = uri.getPathSegments().get(1);
         switch (match) {
             case MOVIES_ID:
-                String id = uri.getPathSegments().get(1);
-                moviesDeleted = db.delete(MovieContract.MovieEntry.TABLE_NAME, "_id=?", new String[]{id});
+                moviesDeleted = db.delete(MovieContract.MovieEntry.TABLE_NAME, whereClause, new String[]{id});
                 break;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);

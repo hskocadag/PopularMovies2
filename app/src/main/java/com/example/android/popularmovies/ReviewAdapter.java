@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesstage1;
+package com.example.android.popularmovies;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -7,9 +7,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.example.android.popularmoviesstage1.model.MovieReview;
+import com.example.android.popularmovies.model.MovieReview;
 
 import java.util.List;
+
+import us.feras.mdv.MarkdownView;
 
 /**
  * Created by Semper_Sinem on 7.03.2018.

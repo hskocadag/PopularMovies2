@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesstage1.utilities.retrofitQueries;
+package com.example.android.popularmovies.utilities.retrofitQueries;
 
 /**
  * Created by Semper_Sinem on 2.03.2018.

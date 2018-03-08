@@ -1,13 +1,13 @@
-package com.example.android.popularmoviesstage1.utilities.retrofitQueries;
+package com.example.android.popularmovies.utilities.retrofitQueries;
 
 /**
  * Created by Semper_Sinem on 2.03.2018.
  */
 
-import com.example.android.popularmoviesstage1.model.MovieImagesRequestResult;
-import com.example.android.popularmoviesstage1.model.MovieRequestResult;
-import com.example.android.popularmoviesstage1.model.MovieReviewsRequestResult;
-import com.example.android.popularmoviesstage1.model.MovieVideosRequestResult;
+import com.example.android.popularmovies.model.MovieImagesRequestResult;
+import com.example.android.popularmovies.model.MovieRequestResult;
+import com.example.android.popularmovies.model.MovieReviewsRequestResult;
+import com.example.android.popularmovies.model.MovieVideosRequestResult;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

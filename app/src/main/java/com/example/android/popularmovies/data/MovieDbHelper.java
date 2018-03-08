@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesstage1.data;
+package com.example.android.popularmovies.data;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
@@ -10,7 +10,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class MovieDbHelper extends SQLiteOpenHelper{
     private static final String DATABASE_NAME = "movies.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 3;
 
     public MovieDbHelper(Context context)
     {
@@ -21,6 +21,7 @@ public class MovieDbHelper extends SQLiteOpenHelper{
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
         final String CREATE_QUERY = "CREATE TABLE " + MovieContract.MovieEntry.TABLE_NAME + " ( " +
                 MovieContract.MovieEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                MovieContract.MovieEntry.COLUMN_MOVIEDB_ID + " INTEGER NOT NULL, " +
                 MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE + " TEXT NOT NULL, " +
                 MovieContract.MovieEntry.COLUMN_OVERVIEW + " TEXT, " +
                 MovieContract.MovieEntry.COLUMN_RELEASE_DATE + " TEXT NOT NULL, " +

@@ -1,4 +1,4 @@
-package com.example.android.popularmoviesstage1.utilities;
+package com.example.android.popularmovies.utilities;
 
 import android.content.Context;
 

@@ -1,10 +1,9 @@
-package com.example.android.popularmoviesstage1;
+package com.example.android.popularmovies;
 
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.AsyncTask;
-import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -15,13 +14,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-import com.example.android.popularmoviesstage1.data.MovieContract;
-import com.example.android.popularmoviesstage1.model.Movie;
-import com.example.android.popularmoviesstage1.model.MovieRequestResult;
-import com.example.android.popularmoviesstage1.utilities.NetworkUtils;
-import com.example.android.popularmoviesstage1.utilities.PropertyUtils;
-import com.example.android.popularmoviesstage1.utilities.retrofitQueries.APIClient;
-import com.example.android.popularmoviesstage1.utilities.retrofitQueries.APIInterface;
+import com.example.android.popularmovies.data.MovieContract;
+import com.example.android.popularmovies.model.Movie;
+import com.example.android.popularmovies.model.MovieRequestResult;
+import com.example.android.popularmovies.utilities.NetworkUtils;
+import com.example.android.popularmovies.utilities.PropertyUtils;
+import com.example.android.popularmovies.utilities.retrofitQueries.APIClient;
+import com.example.android.popularmovies.utilities.retrofitQueries.APIInterface;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -29,13 +28,14 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements MovieAdapter.GridItemClickListener{
 
-    private static final int GRID_LAYOUT_SPAN_COUNT = 3;
+    private static int GRID_LAYOUT_SPAN_COUNT = 3;
     private TextView mErrorMessage;
     private RecyclerView mMoviesRecyclerView;
     private MovieAdapter mMovieAdapter;
     private Movie[] mMovies;
     private MenuItem mSortByPopularity;
     private MenuItem mSortByRating;
+    private MenuItem mFavourites;
     private NetworkUtils.OrderType lastOrder;
     private APIInterface apiInterface;
 
@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         mErrorMessage = findViewById(R.id.tv_error_message);
         mMoviesRecyclerView = findViewById(R.id.rv_movies);
 
+        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
+            GRID_LAYOUT_SPAN_COUNT = 5;
         GridLayoutManager layoutManager
                 = new GridLayoutManager(this, GRID_LAYOUT_SPAN_COUNT, GridLayoutManager.VERTICAL, false);
 
@@ -56,6 +58,22 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         mMoviesRecyclerView.setAdapter(mMovieAdapter);
         loadMovies(NetworkUtils.OrderType.POPULARITY);
         lastOrder = NetworkUtils.OrderType.POPULARITY;
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
+        {
+            GRID_LAYOUT_SPAN_COUNT = 5;
+        }
+        else if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT)
+        {
+            GRID_LAYOUT_SPAN_COUNT = 3;
+        }
+        GridLayoutManager layoutManager
+                = new GridLayoutManager(this, GRID_LAYOUT_SPAN_COUNT, GridLayoutManager.VERTICAL, false);
+        mMoviesRecyclerView.setLayoutManager(layoutManager);
     }
 
     private void loadMovies(NetworkUtils.OrderType orderType) {
@@ -102,12 +120,6 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         Intent detailIntent = new Intent(this, DetailActivity.class);
         Movie clickedMovie = mMovies[clickedItemId];
         detailIntent.putExtra(MovieContract.MovieEntry.TABLE_NAME, clickedMovie);
-//        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_POSTER, clickedMovie.getImageUrl());
-//        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, clickedMovie.getOriginalTitle());
-//        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_OVERVIEW, clickedMovie.getPlotSynopsis());
-//        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_USER_RATING, clickedMovie.getUserRating());
-//        detailIntent.putExtra(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, clickedMovie.getFormattedReleaseDate());
-//        detailIntent.putExtra(MovieContract.MovieEntry._ID, clickedMovie.getId());
         startActivity(detailIntent);
     }
 
@@ -117,6 +129,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         menuInflater.inflate(R.menu.order_movies_main_menu, menu);
         mSortByPopularity = menu.getItem(0);
         mSortByRating = menu.getItem(1);
+        mFavourites = menu.getItem(2);
         mSortByPopularity.setEnabled(false);
         return true;
     }
@@ -167,6 +180,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         else if(id == R.id.rating_menu_item)
         {
             loadMovies(NetworkUtils.OrderType.RATING);
+        }
+        else if(id == R.id.favourites_menu_item)
+        {
+
         }
         return super.onOptionsItemSelected(item);
     }

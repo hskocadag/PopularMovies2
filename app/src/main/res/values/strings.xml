@@ -8,6 +8,7 @@
     <string name="release_date_label">Release Date</string>
     <string name="order_by_popularity_menu_item">Order by Popularity</string>
     <string name="order_by_rating_menu_item">Order by Rating</string>
+    <string name="favourites_menu_item">Favourites</string>
     <string name="order_by_popularity_title">Most Popular Movies</string>
     <string name="order_by_rating_title">Top-Rated Movies</string>
     <string name="movie_detail_title">Movie Detail</string>
