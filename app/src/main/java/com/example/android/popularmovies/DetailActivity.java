@@ -50,6 +50,7 @@ public class DetailActivity extends AppCompatActivity {
     private FloatingActionButton mFABFavMovie;
     private Movie mMovie;
     private boolean mIsFavMovie;
+    private String mYoutubeKey;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,21 +79,29 @@ public class DetailActivity extends AppCompatActivity {
         if(mMovie != null && mMovie.getId() > 0)
         {
             mFABFavMovie = (FloatingActionButton) findViewById(R.id.fab_fav_movie);
-
             mFABFavMovie.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     updateFavStatus();
                 }
             });
-            FloatingActionButton fabTrailer = (FloatingActionButton) findViewById(R.id.fab_watch_trailer);
 
+            FloatingActionButton fabTrailer = (FloatingActionButton) findViewById(R.id.fab_watch_trailer);
             fabTrailer.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     getTrailers();
                 }
             });
+
+            FloatingActionButton fabShareTrailer = (FloatingActionButton) findViewById(R.id.fab_share_trailer);
+            fabShareTrailer.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    ShareTrailer();
+                }
+            });
+
             mIsFavMovie = isFavMovie();
             apiInterface = APIClient.getClient().create(APIInterface.class);
             setDetailViews();
@@ -104,6 +113,44 @@ public class DetailActivity extends AppCompatActivity {
             Toast.makeText(this, "Oops, something went wrong!", Toast.LENGTH_LONG).show();
         }
 
+    }
+
+    //TODO send original trailer
+    private void ShareTrailer(){
+        if(mYoutubeKey == null) {
+            Call<MovieVideosRequestResult> call = apiInterface.getMovieVideos(mMovie.getId(), getApiKey());
+
+            call.enqueue(new Callback<MovieVideosRequestResult>() {
+                @Override
+                public void onResponse(Call<MovieVideosRequestResult> call, Response<MovieVideosRequestResult> response) {
+                    int statusCode = response.code();
+                    MovieVideosRequestResult movieRequestResult = response.body();
+                    if (movieRequestResult == null)
+                        return;
+                    if (movieRequestResult.getResults() != null && movieRequestResult.getResults().size() > 0) {
+                        String key = movieRequestResult.getResults().get(0).getKey();
+                        startShareIntent(key);
+                        mYoutubeKey = key;
+                    }
+                }
+                @Override
+                public void onFailure(Call<MovieVideosRequestResult> call, Throwable t) {
+                }
+            });
+        }
+        else
+        {
+            startShareIntent(mYoutubeKey);
+        }
+    }
+
+    private void startShareIntent(String key)
+    {
+        Intent i = new Intent(Intent.ACTION_SEND);
+        i.setType("text/plain");
+        i.putExtra(Intent.EXTRA_SUBJECT, "Sharing URL");
+        i.putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=" + key);
+        startActivity(Intent.createChooser(i, "Share URL"));
     }
 
     private boolean isFavMovie()
@@ -126,15 +173,11 @@ public class DetailActivity extends AppCompatActivity {
         if(!mIsFavMovie) {
             ContentValues cv = new ContentValues();
             cv.put(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE, mMovie.getOriginalTitle());
+            cv.put(MovieContract.MovieEntry.COLUMN_MOVIEDB_ID, mMovie.getId());
+            cv.put(MovieContract.MovieEntry.COLUMN_POSTER, mMovie.getImageUrl());
             cv.put(MovieContract.MovieEntry.COLUMN_OVERVIEW, mMovie.getPlotSynopsis());
             cv.put(MovieContract.MovieEntry.COLUMN_RELEASE_DATE, mMovie.getFormattedReleaseDate());
             cv.put(MovieContract.MovieEntry.COLUMN_USER_RATING, mMovie.getUserRating());
-            cv.put(MovieContract.MovieEntry.COLUMN_MOVIEDB_ID, mMovie.getId());
-            Bitmap bitmap = ((BitmapDrawable) mPosterImageView.getDrawable()).getBitmap();
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-            byte[] imageInByte = baos.toByteArray();
-            //cv.put(MovieContract.MovieEntry.COLUMN_BACKDROP, imageInByte);
             getContentResolver().insert(MovieContract.MovieEntry.CONTENT_URI, cv);
         }
         else
@@ -189,24 +232,34 @@ public class DetailActivity extends AppCompatActivity {
 
     private void getTrailers()
     {
-        Call<MovieVideosRequestResult> call = apiInterface.getMovieVideos(mMovie.getId(), getApiKey());
+        if(mYoutubeKey == null) {
+            Call<MovieVideosRequestResult> call = apiInterface.getMovieVideos(mMovie.getId(), getApiKey());
 
-        call.enqueue(new Callback<MovieVideosRequestResult>() {
-            @Override
-            public void onResponse(Call<MovieVideosRequestResult> call, Response<MovieVideosRequestResult> response) {
-                int statusCode = response.code();
-                MovieVideosRequestResult movieRequestResult = response.body();
-                if (movieRequestResult == null)
-                    return;
-                if(movieRequestResult.getResults() != null && movieRequestResult.getResults().size() > 0)
-                    watchYoutubeVideo(movieRequestResult.getResults().get(0).getKey());
-            }
+            call.enqueue(new Callback<MovieVideosRequestResult>() {
+                @Override
+                public void onResponse(Call<MovieVideosRequestResult> call, Response<MovieVideosRequestResult> response) {
+                    int statusCode = response.code();
+                    MovieVideosRequestResult movieRequestResult = response.body();
+                    if (movieRequestResult == null)
+                        return;
+                    if (movieRequestResult.getResults() != null && movieRequestResult.getResults().size() > 0) {
+                        String key = movieRequestResult.getResults().get(0).getKey();
+                        watchYoutubeVideo(key);
+                        mYoutubeKey = key;
+                    }
 
-            @Override
-            public void onFailure(Call<MovieVideosRequestResult> call, Throwable t) {
+                }
 
-            }
-        });
+                @Override
+                public void onFailure(Call<MovieVideosRequestResult> call, Throwable t) {
+
+                }
+            });
+        }
+        else
+        {
+            watchYoutubeVideo(mYoutubeKey);
+        }
     }
 
     public void watchYoutubeVideo(String id){

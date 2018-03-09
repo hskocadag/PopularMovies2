@@ -26,12 +26,12 @@ public class Movie implements Parcelable{
     private double userRating;
 
     @SerializedName("release_date")
-    private Date releaseDate;
+    private String releaseDate;
 
     @SerializedName("id")
     private long id;
 
-    public Movie(String originalTitle, String imageUrl, String plotSynopsis, double userRating, Date releaseDate, long id) {
+    public Movie(String originalTitle, String imageUrl, String plotSynopsis, double userRating, String releaseDate, long id) {
         this.originalTitle = originalTitle;
         this.imageUrl = imageUrl;
         this.plotSynopsis = plotSynopsis;
@@ -50,7 +50,7 @@ public class Movie implements Parcelable{
         parcel.writeString(this.originalTitle);
         parcel.writeString(this.imageUrl);
         parcel.writeString(this.plotSynopsis);
-        parcel.writeString(getFormattedReleaseDate());
+        parcel.writeString(this.releaseDate);
         parcel.writeDouble(this.userRating);
         parcel.writeLong(this.id);
     }
@@ -59,7 +59,7 @@ public class Movie implements Parcelable{
         originalTitle = in.readString();
         imageUrl = in.readString();
         plotSynopsis = in.readString();
-        releaseDate = getReleaseDate(in.readString());
+        releaseDate = in.readString();
         userRating = in.readDouble();
         id = in.readLong();
     }
@@ -108,27 +108,23 @@ public class Movie implements Parcelable{
         this.userRating = userRating;
     }
 
-    public Date getReleaseDate() {
+    public String getReleaseDate() {
         return releaseDate;
     }
 
     public String getFormattedReleaseDate()
     {
-        DateFormat df = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
-        return df.format(this.releaseDate);
-    }
-
-    private Date getReleaseDate(String date)
-    {
         try {
-            return (new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH)).parse(date);
-        } catch (ParseException e) {
+            Date date = (new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)).parse(releaseDate);
+            DateFormat df = new SimpleDateFormat("dd MMM yyyy", Locale.ENGLISH);
+            return df.format(date);
+        } catch (Exception e) {
             e.printStackTrace();
-            return null;
         }
+        return releaseDate;
     }
 
-    public void setReleaseDate(Date releaseDate) {
+    public void setReleaseDate(String releaseDate) {
         this.releaseDate = releaseDate;
     }
 

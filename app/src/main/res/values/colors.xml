@@ -10,4 +10,6 @@
     <color name="theme_primary">#800000</color>
     <color name="theme_accent">#00630C</color>
 
+    <color name="poster_placeholder_fill">#e9eef1</color>
+
 </resources>

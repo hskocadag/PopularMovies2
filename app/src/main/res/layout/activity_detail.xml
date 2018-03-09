@@ -17,7 +17,10 @@
             android:layout_marginStart="0dp"
             android:layout_marginTop="0dp"
             android:contentDescription="@string/default_image_desc"
-            app:srcCompat="@drawable/ic_launcher_background" />
+            android:maxHeight="250dp"
+            android:adjustViewBounds="true"
+            android:background="@color/poster_placeholder_fill"
+            app:srcCompat="@drawable/poster_placeholder" />
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab_fav_movie"
@@ -41,8 +44,22 @@
             android:layout_alignLeft="@+id/fab_fav_movie"
             android:layout_alignStart="@+id/fab_fav_movie"
             android:tint="@android:color/white"
+            app:rippleColor="@android:color/white"
             app:backgroundTint="@color/theme_primary"
             app:srcCompat="@android:drawable/ic_media_play" />
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/fab_share_trailer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_above="@+id/fab_watch_trailer"
+            android:layout_alignLeft="@+id/fab_watch_trailer"
+            android:layout_alignStart="@+id/fab_watch_trailer"
+            android:tint="@android:color/white"
+            app:rippleColor="@android:color/white"
+            app:backgroundTint="@color/theme_primary"
+            app:srcCompat="@android:drawable/ic_menu_share" />
 
         <TextView
             android:id="@+id/detail_rating_value"
