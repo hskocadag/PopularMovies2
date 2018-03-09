@@ -6,8 +6,6 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -19,7 +17,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.android.popularmovies.data.MovieContentProvider;
 import com.example.android.popularmovies.data.MovieContract;
 import com.example.android.popularmovies.model.Movie;
 import com.example.android.popularmovies.model.MovieImagesRequestResult;
@@ -29,9 +26,6 @@ import com.example.android.popularmovies.utilities.ImageUtils;
 import com.example.android.popularmovies.utilities.PropertyUtils;
 import com.example.android.popularmovies.utilities.retrofitQueries.APIClient;
 import com.example.android.popularmovies.utilities.retrofitQueries.APIInterface;
-import com.squareup.picasso.Picasso;
-
-import java.io.ByteArrayOutputStream;
 
 import retrofit2.Call;
 import retrofit2.Callback;

@@ -5,7 +5,6 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.PersistableBundle;
 import android.support.annotation.IntDef;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;

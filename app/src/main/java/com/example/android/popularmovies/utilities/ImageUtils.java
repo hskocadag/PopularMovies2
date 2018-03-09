@@ -4,7 +4,6 @@ import android.content.Context;
 import android.widget.ImageView;
 
 import com.example.android.popularmovies.R;
-import com.example.android.popularmovies.model.Movie;
 import com.squareup.picasso.Picasso;
 
 import java.net.URL;
