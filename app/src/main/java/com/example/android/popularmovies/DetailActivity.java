@@ -142,7 +142,11 @@ public class DetailActivity extends AppCompatActivity {
     {
         Intent i = new Intent(Intent.ACTION_SEND);
         i.setType("text/plain");
-        i.putExtra(Intent.EXTRA_SUBJECT, "Sharing URL");
+        StringBuilder sb = new StringBuilder();
+        sb.append("Hey! Check out this trailer of the movie ")
+                .append(mMovie.getOriginalTitle())
+                .append(".");
+        i.putExtra(Intent.EXTRA_SUBJECT, sb.toString());
         i.putExtra(Intent.EXTRA_TEXT, "https://www.youtube.com/watch?v=" + key);
         startActivity(Intent.createChooser(i, "Share URL"));
     }
@@ -241,7 +245,6 @@ public class DetailActivity extends AppCompatActivity {
                         watchYoutubeVideo(key);
                         mYoutubeKey = key;
                     }
-
                 }
 
                 @Override
@@ -258,11 +261,12 @@ public class DetailActivity extends AppCompatActivity {
 
     public void watchYoutubeVideo(String id){
         Intent appIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + id));
-        Intent webIntent = new Intent(Intent.ACTION_VIEW,
-                Uri.parse("http://www.youtube.com/watch?v=" + id));
-        try {
+        if (appIntent.resolveActivity(getPackageManager()) != null) {
             startActivity(appIntent);
-        } catch (ActivityNotFoundException ex) {
+        }
+        else {
+            Intent webIntent = new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("http://www.youtube.com/watch?v=" + id));
             startActivity(webIntent);
         }
     }

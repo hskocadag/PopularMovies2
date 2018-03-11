@@ -5,7 +5,9 @@ import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Parcelable;
 import android.support.annotation.IntDef;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
@@ -26,6 +28,7 @@ import com.example.android.popularmovies.utilities.retrofitQueries.APIInterface;
 
 import java.lang.annotation.Retention;
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -37,13 +40,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
 
     private static int GRID_LAYOUT_SPAN_COUNT = 3;
     private TextView mErrorMessage;
-    private TextView mNoFavMessage;
     private RecyclerView mMoviesRecyclerView;
     private MovieAdapter mMovieAdapter;
-    private Movie[] mMovies;
+    private List<Movie> mMovies;
     private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
     private APIInterface apiInterface;
     private static @MovieCategorie int movieCategory = 0;
+    private final String KEY_INSTANCE_STATE_RV_POSITION = "key_instance_state_rv_position";
+    private int pageCount = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,19 +59,20 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
 
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
             GRID_LAYOUT_SPAN_COUNT = 5;
-        GridLayoutManager layoutManager
-                = new GridLayoutManager(this, GRID_LAYOUT_SPAN_COUNT, GridLayoutManager.VERTICAL, false);
 
+        GridLayoutManager gridLayoutManager
+                = new GridLayoutManager(this, GRID_LAYOUT_SPAN_COUNT, GridLayoutManager.VERTICAL, false);
         mErrorMessage.setVisibility(View.GONE);
-        mMoviesRecyclerView.setLayoutManager(layoutManager);
+        mMoviesRecyclerView.setLayoutManager(gridLayoutManager);
         mMovieAdapter = new MovieAdapter(this, this);
         mMoviesRecyclerView.setAdapter(mMovieAdapter);
+
         if(movieCategory == TOP_RATED)
-            loadMovies(NetworkUtils.OrderType.RATING);
+            loadMovies(NetworkUtils.OrderType.RATING, pageCount);
         else if(movieCategory == FAVOURITED)
             loadFavourites();
         else
-            loadMovies(NetworkUtils.OrderType.POPULARITY);
+            loadMovies(NetworkUtils.OrderType.POPULARITY, pageCount);
 
     }
 
@@ -84,13 +89,13 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         }
     }
 
-    private void loadMovies(NetworkUtils.OrderType orderType) {
+    private void loadMovies(NetworkUtils.OrderType orderType, int page) {
         if(isOnline()) {
-            Call<MovieRequestResult> call = apiInterface.getPopularMovies(getApiKey());
+            Call<MovieRequestResult> call = apiInterface.getPopularMovies(page, getApiKey());
             movieCategory = POPULAR;
             if (orderType == NetworkUtils.OrderType.RATING)
             {
-                call = apiInterface.getTopRatedMovies(getApiKey());
+                call = apiInterface.getTopRatedMovies(page, getApiKey());
                 movieCategory = TOP_RATED;
             }
 
@@ -101,8 +106,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
                     MovieRequestResult movieRequestResult = response.body();
                     if (movieRequestResult == null)
                         return;
-                    Movie[] movies = new Movie[movieRequestResult.getMovies().size()];
-                    movies = movieRequestResult.getMovies().toArray(movies);
+                    List<Movie> movies = movieRequestResult.getMovies();
                     if (movies == null) {
                         mErrorMessage.setText(R.string.error_internet_connection);
                         mErrorMessage.setVisibility(View.VISIBLE);
@@ -113,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
                         mMovies = movies;
                         mMovieAdapter.updateMoviesArray(movies);
                     }
+                    pageCount++;
                 }
 
                 @Override
@@ -134,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
     @Override
     public void onGridItemClick(int clickedItemId) {
         Intent detailIntent = new Intent(this, DetailActivity.class);
-        Movie clickedMovie = mMovies[clickedItemId];
+        Movie clickedMovie = mMovies.get(clickedItemId);
         detailIntent.putExtra(MovieContract.MovieEntry.TABLE_NAME, clickedMovie);
         startActivity(detailIntent);
     }
@@ -177,12 +182,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         int id = item.getItemId();
         if(id == R.id.popularity_menu_item)
         {
-            loadMovies(NetworkUtils.OrderType.POPULARITY);
+            loadMovies(NetworkUtils.OrderType.POPULARITY,1);
+            pageCount = 1;
             setTitle(R.string.order_by_popularity_title);
         }
         else if(id == R.id.rating_menu_item)
         {
-            loadMovies(NetworkUtils.OrderType.RATING);
+            loadMovies(NetworkUtils.OrderType.RATING, 1);
+            pageCount = 1;
             setTitle(R.string.order_by_rating_title);
         }
         else if(id == R.id.favourites_menu_item)
@@ -202,18 +209,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
             mMoviesRecyclerView.setVisibility(View.GONE);
         }
         else {
-            Movie[] movies = new Movie[cursor.getCount()];
+            List<Movie> movies = new ArrayList<Movie>();
             cursor.moveToFirst();
             for(int i = 0; i < cursor.getCount(); i++, cursor.moveToNext())
             {
-                movies[i] = new Movie(
+                movies.add(new Movie(
                         cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_ORIGINAL_TITLE)),
                         cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_POSTER)),
                         cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_OVERVIEW)),
                         cursor.getDouble(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_USER_RATING)),
                         cursor.getString(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_RELEASE_DATE)),
                         cursor.getInt(cursor.getColumnIndex(MovieContract.MovieEntry.COLUMN_MOVIEDB_ID))
-                );
+                ));
             }
             mErrorMessage.setVisibility(View.GONE);
             mMoviesRecyclerView.setVisibility(View.VISIBLE);

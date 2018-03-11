@@ -11,11 +11,12 @@ import com.example.android.popularmovies.model.Movie;
 import com.example.android.popularmovies.utilities.ImageUtils;
 
 import java.io.ByteArrayOutputStream;
+import java.util.List;
 
 public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHolder> {
 
     private final GridItemClickListener mGridItemClickListener;
-    private Movie[] mMovies;
+    private List<Movie> mMovies;
     private final Context mContext;
 
     public MovieAdapter(Context context, GridItemClickListener gridItemClickListener)
@@ -37,16 +38,16 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         if(position >= getItemCount())
             return;
 
-        String imageUrl = mMovies[position].getImageUrl();
+        String imageUrl = mMovies.get(position).getImageUrl();
         ImageUtils.insertImageIntoView(holder.mMoviePoster, mContext, imageUrl, ImageUtils.PosterSize.SMALL);
-        holder.mMoviePoster.setContentDescription(mMovies[position].getOriginalTitle());
+        holder.mMoviePoster.setContentDescription(mMovies.get(position).getOriginalTitle());
     }
 
     @Override
     public int getItemCount() {
         if(mMovies == null)
             return 0;
-        return mMovies.length;
+        return mMovies.size();
     }
 
     public interface GridItemClickListener {
@@ -71,7 +72,7 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
 
     }
 
-    public void updateMoviesArray(Movie[] movies)
+    public void updateMoviesArray(List<Movie> movies)
     {
         mMovies = movies;
         notifyDataSetChanged();
