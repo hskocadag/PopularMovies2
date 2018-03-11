@@ -14,6 +14,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ScrollView;
+import android.widget.Scroller;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -33,6 +35,7 @@ import retrofit2.Response;
 
 public class DetailActivity extends AppCompatActivity {
 
+    private ScrollView mScrollView;
     private ImageView mPosterImageView;
     private TextView mOriginalTitleView;
     private TextView mOverviewView;
@@ -45,12 +48,15 @@ public class DetailActivity extends AppCompatActivity {
     private Movie mMovie;
     private boolean mIsFavMovie;
     private String mYoutubeKey;
+    private final String ARTICLE_SCROLL_POSITION = "ARTICLE_SCROLL_POSITION";
+    private int[] position;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail);
 
+        mScrollView = findViewById(R.id.sv_movie_detail);
         mPosterImageView = findViewById(R.id.detail_movie_poster);
         mOriginalTitleView = findViewById(R.id.detail_title_value);
         mOverviewView = findViewById(R.id.detail_overview_value);
@@ -106,10 +112,25 @@ public class DetailActivity extends AppCompatActivity {
         {
             Toast.makeText(this, "Oops, something went wrong!", Toast.LENGTH_LONG).show();
         }
-
     }
 
-    //TODO send original trailer
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putIntArray(ARTICLE_SCROLL_POSITION,
+                new int[]{ mScrollView.getScrollX(), mScrollView.getScrollY()});
+    }
+
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        position = savedInstanceState.getIntArray(ARTICLE_SCROLL_POSITION);
+        if(position != null)
+            mScrollView.post(new Runnable() {
+                public void run() {
+                    mScrollView.scrollTo(position[0], position[1]);
+                }
+            });
+    }
+
     private void ShareTrailer(){
         if(mYoutubeKey == null) {
             Call<MovieVideosRequestResult> call = apiInterface.getMovieVideos(mMovie.getId(), getApiKey());
@@ -216,9 +237,15 @@ public class DetailActivity extends AppCompatActivity {
                     mReviewRecyclerView.setVisibility(View.GONE);
                     return;
                 }
-                else
-                    findViewById(R.id.tv_review_title).setVisibility(View.VISIBLE);
-                    mReviewAdapter.updateReviewList(movieReviewsRequestResult.getResults());
+                findViewById(R.id.tv_review_title).setVisibility(View.VISIBLE);
+                mReviewAdapter.updateReviewList(movieReviewsRequestResult.getResults());
+
+                if(position != null)
+                    mScrollView.post(new Runnable() {
+                        public void run() {
+                            mScrollView.scrollTo(position[0], position[1]);
+                        }
+                    });
             }
 
             @Override
