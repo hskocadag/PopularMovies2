@@ -91,11 +91,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
 
     private void loadMovies(NetworkUtils.OrderType orderType, int page) {
         if(isOnline()) {
-            Call<MovieRequestResult> call = apiInterface.getPopularMovies(page, getApiKey());
+            Call<MovieRequestResult> call = apiInterface.getPopularMovies(getApiKey());
             movieCategory = POPULAR;
             if (orderType == NetworkUtils.OrderType.RATING)
             {
-                call = apiInterface.getTopRatedMovies(page, getApiKey());
+                call = apiInterface.getTopRatedMovies(getApiKey());
                 movieCategory = TOP_RATED;
             }
 
