@@ -46,8 +46,9 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
     private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
     private APIInterface apiInterface;
     private static @MovieCategorie int movieCategory = 0;
-    private final String KEY_INSTANCE_STATE_RV_POSITION = "key_instance_state_rv_position";
-    private int pageCount = 1;
+    private GridLayoutManager mGridLayoutManager;
+    private final String LIST_STATE_KEY = "LIST_STATE_KEY";
+    private Parcelable mListState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,19 +61,18 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         if(getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE)
             GRID_LAYOUT_SPAN_COUNT = 5;
 
-        GridLayoutManager gridLayoutManager
-                = new GridLayoutManager(this, GRID_LAYOUT_SPAN_COUNT, GridLayoutManager.VERTICAL, false);
+        mGridLayoutManager = new GridLayoutManager(this, GRID_LAYOUT_SPAN_COUNT, GridLayoutManager.VERTICAL, false);
         mErrorMessage.setVisibility(View.GONE);
-        mMoviesRecyclerView.setLayoutManager(gridLayoutManager);
+        mMoviesRecyclerView.setLayoutManager(mGridLayoutManager);
         mMovieAdapter = new MovieAdapter(this, this);
         mMoviesRecyclerView.setAdapter(mMovieAdapter);
 
         if(movieCategory == TOP_RATED)
-            loadMovies(NetworkUtils.OrderType.RATING, pageCount);
+            loadMovies(NetworkUtils.OrderType.RATING);
         else if(movieCategory == FAVOURITED)
             loadFavourites();
         else
-            loadMovies(NetworkUtils.OrderType.POPULARITY, pageCount);
+            loadMovies(NetworkUtils.OrderType.POPULARITY);
 
     }
 
@@ -89,7 +89,21 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         }
     }
 
-    private void loadMovies(NetworkUtils.OrderType orderType, int page) {
+    protected void onSaveInstanceState(Bundle state) {
+        super.onSaveInstanceState(state);
+
+        mListState = mGridLayoutManager.onSaveInstanceState();
+        state.putParcelable(LIST_STATE_KEY, mListState);
+    }
+
+    protected void onRestoreInstanceState(Bundle state) {
+        super.onRestoreInstanceState(state);
+
+        if(state != null)
+            mListState = state.getParcelable(LIST_STATE_KEY);
+    }
+
+    private void loadMovies(NetworkUtils.OrderType orderType) {
         if(isOnline()) {
             Call<MovieRequestResult> call = apiInterface.getPopularMovies(getApiKey());
             movieCategory = POPULAR;
@@ -116,8 +130,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
                         mMoviesRecyclerView.setVisibility(View.VISIBLE);
                         mMovies = movies;
                         mMovieAdapter.updateMoviesArray(movies);
+                        if (mListState != null) {
+                            mGridLayoutManager.onRestoreInstanceState(mListState);
+                        }
                     }
-                    pageCount++;
                 }
 
                 @Override
@@ -182,14 +198,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         int id = item.getItemId();
         if(id == R.id.popularity_menu_item)
         {
-            loadMovies(NetworkUtils.OrderType.POPULARITY,1);
-            pageCount = 1;
+            loadMovies(NetworkUtils.OrderType.POPULARITY);
             setTitle(R.string.order_by_popularity_title);
         }
         else if(id == R.id.rating_menu_item)
         {
-            loadMovies(NetworkUtils.OrderType.RATING, 1);
-            pageCount = 1;
+            loadMovies(NetworkUtils.OrderType.RATING);
             setTitle(R.string.order_by_rating_title);
         }
         else if(id == R.id.favourites_menu_item)
