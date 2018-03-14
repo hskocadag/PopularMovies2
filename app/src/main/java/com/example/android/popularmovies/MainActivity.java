@@ -1,5 +1,6 @@
 package com.example.android.popularmovies;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -42,13 +43,14 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
     private TextView mErrorMessage;
     private RecyclerView mMoviesRecyclerView;
     private MovieAdapter mMovieAdapter;
-    private List<Movie> mMovies;
+    private List<Movie> mMovies = new ArrayList<Movie>();
     private ArrayList<MenuItem> menuItems = new ArrayList<MenuItem>();
     private APIInterface apiInterface;
     private static @MovieCategorie int movieCategory = 0;
     private GridLayoutManager mGridLayoutManager;
     private final String LIST_STATE_KEY = "LIST_STATE_KEY";
     private Parcelable mListState;
+    private EndlessRecyclerOnScrollListener endlessRecyclerOnScrollListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,21 +68,23 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         mMoviesRecyclerView.setLayoutManager(mGridLayoutManager);
         mMovieAdapter = new MovieAdapter(this, this);
         mMoviesRecyclerView.setAdapter(mMovieAdapter);
-        /*mMoviesRecyclerView.addOnScrollListener(
-                new EndlessRecyclerOnScrollListener() {
-                    @Override
-                    public void onLoadMore() {
-                        loadMovies();
-                    }
-                }
-        );*/
+        endlessRecyclerOnScrollListener = new EndlessRecyclerOnScrollListener() {
+            @SuppressLint("WrongConstant")
+            @Override
+            public void onLoadMore(int page) {
+                loadMovies(movieCategory, page);
+            }
+        };
+        mMoviesRecyclerView.addOnScrollListener(
+                endlessRecyclerOnScrollListener
+        );
 
         if(movieCategory == TOP_RATED)
-            loadMovies(TOP_RATED);
+            loadMovies(TOP_RATED, 1);
         else if(movieCategory == FAVOURITED)
             loadFavourites();
         else
-            loadMovies(POPULAR);
+            loadMovies(POPULAR, 1);
 
     }
 
@@ -111,13 +115,15 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
             mListState = state.getParcelable(LIST_STATE_KEY);
     }
 
-    private void loadMovies(@MovieCategorie int requestedMovieCategory) {
+    private void loadMovies(@MovieCategorie int requestedMovieCategory, int page) {
+        if(requestedMovieCategory == FAVOURITED)
+            return;
         if(isOnline()) {
-            Call<MovieRequestResult> call = apiInterface.getPopularMovies(getApiKey());
+            Call<MovieRequestResult> call = apiInterface.getPopularMovies(getApiKey(), page);
             movieCategory = POPULAR;
             if (requestedMovieCategory == TOP_RATED)
             {
-                call = apiInterface.getTopRatedMovies(getApiKey());
+                call = apiInterface.getTopRatedMovies(getApiKey(), page);
                 movieCategory = TOP_RATED;
             }
 
@@ -136,8 +142,8 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
                     } else {
                         mErrorMessage.setVisibility(View.GONE);
                         mMoviesRecyclerView.setVisibility(View.VISIBLE);
-                        mMovies = movies;
-                        mMovieAdapter.updateMoviesArray(movies);
+                        mMovies.addAll(movies);
+                        mMovieAdapter.updateMoviesArray(mMovies);
                         if (mListState != null) {
                             mGridLayoutManager.onRestoreInstanceState(mListState);
                         }
@@ -203,15 +209,17 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        mMovies.removeAll(mMovies);
+        endlessRecyclerOnScrollListener.resetScroller();
         int id = item.getItemId();
         if(id == R.id.popularity_menu_item)
         {
-            loadMovies(POPULAR);
+            loadMovies(POPULAR, 1);
             setTitle(R.string.order_by_popularity_title);
         }
         else if(id == R.id.rating_menu_item)
         {
-            loadMovies(TOP_RATED);
+            loadMovies(TOP_RATED, 1);
             setTitle(R.string.order_by_rating_title);
         }
         else if(id == R.id.favourites_menu_item)
