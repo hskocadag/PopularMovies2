@@ -66,13 +66,21 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         mMoviesRecyclerView.setLayoutManager(mGridLayoutManager);
         mMovieAdapter = new MovieAdapter(this, this);
         mMoviesRecyclerView.setAdapter(mMovieAdapter);
+        /*mMoviesRecyclerView.addOnScrollListener(
+                new EndlessRecyclerOnScrollListener() {
+                    @Override
+                    public void onLoadMore() {
+                        loadMovies();
+                    }
+                }
+        );*/
 
         if(movieCategory == TOP_RATED)
-            loadMovies(NetworkUtils.OrderType.RATING);
+            loadMovies(TOP_RATED);
         else if(movieCategory == FAVOURITED)
             loadFavourites();
         else
-            loadMovies(NetworkUtils.OrderType.POPULARITY);
+            loadMovies(POPULAR);
 
     }
 
@@ -103,11 +111,11 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
             mListState = state.getParcelable(LIST_STATE_KEY);
     }
 
-    private void loadMovies(NetworkUtils.OrderType orderType) {
+    private void loadMovies(@MovieCategorie int requestedMovieCategory) {
         if(isOnline()) {
             Call<MovieRequestResult> call = apiInterface.getPopularMovies(getApiKey());
             movieCategory = POPULAR;
-            if (orderType == NetworkUtils.OrderType.RATING)
+            if (requestedMovieCategory == TOP_RATED)
             {
                 call = apiInterface.getTopRatedMovies(getApiKey());
                 movieCategory = TOP_RATED;
@@ -198,12 +206,12 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
         int id = item.getItemId();
         if(id == R.id.popularity_menu_item)
         {
-            loadMovies(NetworkUtils.OrderType.POPULARITY);
+            loadMovies(POPULAR);
             setTitle(R.string.order_by_popularity_title);
         }
         else if(id == R.id.rating_menu_item)
         {
-            loadMovies(NetworkUtils.OrderType.RATING);
+            loadMovies(TOP_RATED);
             setTitle(R.string.order_by_rating_title);
         }
         else if(id == R.id.favourites_menu_item)
