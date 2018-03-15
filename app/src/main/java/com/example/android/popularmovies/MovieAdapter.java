@@ -78,4 +78,10 @@ public class MovieAdapter extends RecyclerView.Adapter<MovieAdapter.MovieViewHol
         notifyDataSetChanged();
     }
 
+    public void insertToMoviesArray(List<Movie> movies, int startIndex, int itemCount)
+    {
+        mMovies = movies;
+        notifyItemRangeInserted(startIndex, itemCount);
+    }
+
 }

@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
             mListState = state.getParcelable(LIST_STATE_KEY);
     }
 
-    private void loadMovies(@MovieCategorie int requestedMovieCategory, int page) {
+    private void loadMovies(@MovieCategorie int requestedMovieCategory, final int page) {
         if(requestedMovieCategory == FAVOURITED)
             return;
         if(isOnline()) {
@@ -143,7 +143,10 @@ public class MainActivity extends AppCompatActivity implements MovieAdapter.Grid
                         mErrorMessage.setVisibility(View.GONE);
                         mMoviesRecyclerView.setVisibility(View.VISIBLE);
                         mMovies.addAll(movies);
-                        mMovieAdapter.updateMoviesArray(mMovies);
+                        if(page == 1)
+                            mMovieAdapter.updateMoviesArray(mMovies);
+                        else
+                            mMovieAdapter.insertToMoviesArray(mMovies, page*mMovies.size() -1, mMovies.size());
                         if (mListState != null) {
                             mGridLayoutManager.onRestoreInstanceState(mListState);
                         }
